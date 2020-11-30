@@ -12,37 +12,18 @@ on:
 
 jobs:
   build:
-    if: github.event_name != 'push'
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v1
-
-    - name: Build Docker image
-      run: docker build . -t image
-
-  gpr:
     name: Push to GitHub Package Registry
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
-    - uses: antequant/docker-push-action@v0.3
-      with:
-        docker_server: docker.pkg.github.com
-        docker_password: ${{ secrets.GITHUB_TOKEN }}
-        image_path: docker.pkg.github.com/${{ github.repository }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: docker.pkg.github.com/${{ github.repository }}
+          platforms: linux/amd64
+          secrets: |
+            GIT_AUTH_TOKEN=${{ secrets.MYTOKEN }}
   
-  dockerhub:
-    name: Push to Docker Hub
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v1
-    - uses: antequant/docker-push-action@v0.3
-      with:
-        docker_username: antequantsvcuser
-        docker_password: ${{ secrets.DOCKER_TOKEN }}
-        image_path: antequantmirror
